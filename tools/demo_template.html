@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>飞奔成本管理系统 · 离线演示</title>
+<style>
+:root{--bg:#0f1620;--panel:#16202c;--line:#243343;--tx:#e6edf5;--sub:#8ba0b8;--acc:#2f9e6e;--warn:#e6a23c;--bad:#e0544b;--blu:#3d8bfd}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;padding:0 0 60px}
+header{background:linear-gradient(120deg,#12303f,#0f1620 70%);padding:26px 40px 0;border-bottom:1px solid var(--line)}
+h1{font-size:22px;font-weight:600;letter-spacing:.5px}
+h1 span.c{color:#4fd18b}
+.sub{color:var(--sub);font-size:13px;margin-top:6px}
+.badge{display:inline-block;background:#1d3a2e;color:#4fd18b;border:1px solid #2f6b4d;border-radius:20px;padding:1px 10px;font-size:12px;margin-left:10px;vertical-align:middle}
+nav{display:flex;gap:4px;padding:18px 0;flex-wrap:wrap}
+nav button{background:transparent;border:1px solid var(--line);color:var(--sub);padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px}
+nav button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+main{padding:24px 40px;max-width:1440px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc)}
+.card.w::before{background:var(--warn)}.card.b::before{background:var(--bad)}.card.u::before{background:var(--blu)}
+.k{color:var(--sub);font-size:12px}
+.v{font-size:23px;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}
+.v small{font-size:12px;color:var(--sub);margin-left:4px;font-weight:400}
+h2{font-size:15px;font-weight:600;margin:28px 0 12px;color:#cfe0f0}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13px}
+th{background:#1b2836;color:var(--sub);font-weight:500;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:12px}
+td{padding:9px 12px;border-bottom:1px solid #1c2733;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#1a2532}
+.r{text-align:right}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px}
+.t-ok{background:#173728;color:#4fd18b}.t-w{background:#3a2e16;color:#e6a23c}
+.t-b{background:#3a1d1b;color:#f0796f}.t-i{background:#182b42;color:#6aa9f5}
+.bar{height:7px;background:#1c2733;border-radius:4px;overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.bar i.w{background:var(--warn)}.bar i.b{background:var(--bad)}
+.pos{color:#4fd18b}.neg{color:#f0796f}
+footer{color:#5a6b80;font-size:12px;padding:34px 40px 0;text-align:center;line-height:1.9}
+.note{background:#1a2330;border-left:3px solid var(--blu);padding:12px 16px;border-radius:6px;color:#a8bccf;font-size:13px;margin-bottom:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1>飞奔成本管理系统 <span class="c">V1.0</span><span class="badge">离线演示快照</span></h1>
+  <div class="sub">标准成本 · 实际归集 · 约当产量 · 五维差异 · 阶梯分摊 · 预算闸口 · 期间结账</div>
+  <nav id="nav"></nav>
+</header>
+<main id="main"></main>
+<footer>本页为静态快照，数据取自线上实例 2026-10 期间，仅展示不含写操作。<br>完整体验：http://42.193.158.63/cost/ &nbsp;·&nbsp; 源码：https://github.com/dukema81/feiben-cost</footer>
+<script>
+const D = __DATA__;
+const $ = s => document.querySelector(s);
+const money = v => (v==null||v==='')?'—':Number(v).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const wan = v => (v==null)?'—':(Math.abs(v)>=10000?(v/10000).toFixed(2)+' 万':money(v));
+const num = v => (v==null)?'—':Number(v).toLocaleString('zh-CN',{maximumFractionDigits:2});
+const pct = v => (v==null)?'—':(Number(v)*100).toFixed(1)+'%';
+const sgn = v => (v>0?'neg':(v<0?'pos':''));
+const L = k => (D[k] && Array.isArray(D[k].list)) ? D[k].list : [];
+function tbl(cols, rows, empty){
+  if(!rows || !rows.length) return '<div class="note">'+(empty||'暂无数据')+'</div>';
+  let h = '<table><thead><tr>' + cols.map(c=>'<th class="'+(c.r?'r':'')+'">'+c.t+'</th>').join('') + '</tr></thead><tbody>';
+  h += rows.map(r=>'<tr>'+cols.map(c=>'<td class="'+(c.r?'r':'')+'">'+(c.f?c.f(r):(r[c.k]??'—'))+'</td>').join('')+'</tr>').join('');
+  return h + '</tbody></table>';
+}
+const PAGES = [];
+const page = o => PAGES.push(o);
+
+page({id:'dash', t:'仪表盘', render(){
+  const b = D.board && D.board.kpi ? D.board.kpi : {};
+  const bg = b.budget || {};
+  const p = D.board && D.board.period ? D.board.period : {};
+  const kpi = [
+    ['本期实际成本', wan(b.actTotal), '元', ''],
+    ['本期标准成本', wan(b.stdTotal), '元', 'u'],
+    ['成本差异', wan(b.variance), '元', (b.variance||0)>0?'b':''],
+    ['差异率', b.varianceRate!=null?pct(b.varianceRate):'—', '', (b.varianceRate||0)>0.05?'w':''],
+    ['直接归集', wan(b.directCost), '元', ''],
+    ['已分摊', wan(b.allocated), '元', 'u'],
+    ['待审批费用', num(b.pendingExpenses), '张', (b.pendingExpenses||0)>0?'w':''],
+    ['预算执行率', bg.rate!=null?pct(bg.rate):'—', '', (bg.rate||0)>1?'b':''],
+  ];
+  let h = '<div class="grid">' + kpi.map(k=>'<div class="card '+k[3]+'"><div class="k">'+k[0]+'</div><div class="v">'+(k[1]??'—')+'<small>'+k[2]+'</small></div></div>').join('') + '</div>';
+
+  if(p.period){
+    h += '<h2>期间状态 · '+p.period+'</h2>';
+    h += '<div class="grid">'
+      + '<div class="card"><div class="k">成本中心</div><div class="v">'+num(p.centers)+'</div></div>'
+      + '<div class="card u"><div class="k">产品</div><div class="v">'+num(p.products)+'</div></div>'
+      + '<div class="card '+(p.openOrders>0?'w':'')+'"><div class="k">在制工单</div><div class="v">'+num(p.openOrders)+'</div></div>'
+      + '<div class="card"><div class="k">分摊守恒校验</div><div class="v" style="color:#4fd18b">'+money(b.allocCheck)+'</div></div>'
+      + '</div>';
+  }
+
+  const trend = L('rep_trend').filter(x=>x.actual>0);
+  if(trend.length){
+    h += '<h2>近 6 期成本趋势</h2>' + tbl([
+      {t:'期间',k:'period'},
+      {t:'实际成本',r:1,f:r=>money(r.actual)},
+      {t:'标准成本',r:1,f:r=>money(r.standard)},
+      {t:'总差异',r:1,f:r=>'<span class="'+sgn(r.variance)+'">'+money(r.variance)+'</span>'},
+      {t:'差异率',r:1,f:r=>pct(r.varRate)}
+    ], trend);
+  }
+
+  const cs = L('rep_center').filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+  if(cs.length){
+    const mx = Math.max(...cs.map(x=>x.total),1);
+    h += '<h2>成本中心归集排名</h2>' + tbl([
+      {t:'编码',k:'code'},{t:'成本中心',k:'name'},{t:'类型',k:'ctype'},
+      {t:'直接归集',r:1,f:r=>money(r.direct)},
+      {t:'分入',r:1,f:r=>money(r.allocIn)},
+      {t:'合计',r:1,f:r=>'<b>'+money(r.total)+'</b>'},
+      {t:'占比',f:r=>'<div class="bar"><i style="width:'+Math.max(2,Math.round(r.total/mx*100))+'%"></i></div>'}
+    ], cs.slice(0,8));
+  }
+
+  const vt = L('rep_top');
+  if(vt.length){
+    h += '<h2>差异 TOP</h2>' + tbl([
+      {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+      {t:'总差异',r:1,f:r=>'<span class="'+sgn(r.totalVar)+'">'+money(r.totalVar)+'</span>'},
+      {t:'其中效率差',r:1,f:r=>money(r.effVar)},
+      {t:'其中量差',r:1,f:r=>money(r.qtyVar)},
+      {t:'等级',f:r=>{const l=r.level||'';return '<span class="tag '+(l==='不利'?'t-b':'t-ok')+'">'+(l||'正常')+'</span>';}}
+    ], vt.slice(0,5));
+  }
+  return h;
+}});
+
+page({id:'center', t:'成本中心', render(){
+  return tbl([
+    {t:'编码',k:'code'},{t:'名称',k:'name'},
+    {t:'类型',f:r=>{const m={'辅助':'t-i','生产':'t-ok','管理':'t-w','销售':'t-w','研发':'t-i'};return '<span class="tag '+(m[r.ctype]||'t-i')+'">'+(r.ctype||'—')+'</span>';}},
+    {t:'分摊顺序',r:1,k:'allocOrder'},
+    {t:'分配标准',k:'driver'},
+    {t:'作业量',r:1,f:r=>num(r.driverQty)},
+    {t:'直接归集',r:1,f:r=>money(r.directCost)},
+    {t:'负责人',k:'leader'},
+    {t:'状态',f:r=>'<span class="tag '+(r.status==='启用'?'t-ok':'t-b')+'">'+(r.status||'—')+'</span>'}
+  ], L('centers'));
+}});
+
+page({id:'subject', t:'会计科目', render(){
+  return tbl([
+    {t:'编码',k:'code'},{t:'名称',k:'name'},{t:'类别',k:'category'},
+    {t:'归集方式',k:'gather'},
+    {t:'启用',f:r=>r.enabled?'<span class="tag t-ok">启用</span>':'<span class="tag t-b">停用</span>'}
+  ], L('subjects'));
+}});
+
+page({id:'product', t:'产品与 BOM', render(){
+  const ps = L('products');
+  let h = tbl([
+    {t:'编码',k:'code'},{t:'名称',k:'name'},{t:'规格',k:'spec'},{t:'单位',k:'unit'},
+    {t:'标准工时',r:1,f:r=>num(r.stdHours)},
+    {t:'生产中心',f:r=>(r.center||'')+' '+(r.centerName||'')},
+    {t:'BOM 行数',r:1,k:'bomCount'},
+    {t:'单位标准成本',r:1,f:r=>'<b>'+money(r.stdUnitCost)+'</b>'},
+    {t:'标准材料',r:1,f:r=>money(r.stdMat)},
+    {t:'标准人工',r:1,f:r=>money(r.stdLabor)},
+    {t:'标准制费',r:1,f:r=>money(r.stdOh)}
+  ], ps);
+  h += '<div class="note">标准成本卡口径：材料 = Σ 单位用量 ×（1 + 损耗率）× 标准单价；人工 / 制造费用 = 标准工时 × 中心费率。</div>';
+  return h;
+}});
+
+page({id:'std', t:'标准成本', render(){
+  return tbl([
+    {t:'期间',k:'period'},
+    {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+    {t:'单位',k:'unit'},{t:'版本',r:1,k:'version'},
+    {t:'材料',r:1,f:r=>money(r.matCost)},
+    {t:'人工',r:1,f:r=>money(r.laborCost)},
+    {t:'制造费用',r:1,f:r=>money(r.ohCost)},
+    {t:'单位标准成本',r:1,f:r=>'<b>'+money(r.unitCost)+'</b>'},
+    {t:'状态',f:r=>'<span class="tag t-ok">'+(r.status||'—')+'</span>'}
+  ], L('std'));
+}});
+
+page({id:'wo', t:'工单管理', render(){
+  return tbl([
+    {t:'工单号',k:'no'},
+    {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+    {t:'生产中心',f:r=>(r.center||'')+' '+(r.centerName||'')},
+    {t:'计划',r:1,f:r=>num(r.qtyPlan)},
+    {t:'完工',r:1,f:r=>num(r.qtyDone)},
+    {t:'在制',r:1,f:r=>num(r.wipQty)},
+    {t:'完工进度',r:1,f:r=>pct(r.wipRate)},
+    {t:'实际总成本',r:1,f:r=>money(r.actTotal)},
+    {t:'状态',f:r=>{const m={'已完工':'t-ok','在制':'t-i','已下达':'t-w','已关闭':'t-b'};return '<span class="tag '+(m[r.status]||'t-i')+'">'+(r.status||'—')+'</span>';}}
+  ], L('orders'));
+}});
+
+page({id:'exp', t:'费用归集', render(){
+  const rows = L('expenses');
+  const ok = rows.filter(r=>r.status==='已批准');
+  let h = '<div class="grid">'
+    + '<div class="card"><div class="k">费用单数</div><div class="v">'+rows.length+'<small>张</small></div></div>'
+    + '<div class="card u"><div class="k">已批准金额</div><div class="v">'+wan(ok.reduce((a,r)=>a+Number(r.amount||0),0))+'<small>元</small></div></div>'
+    + '<div class="card w"><div class="k">待审批</div><div class="v">'+rows.filter(r=>r.status==='待审批').length+'<small>张</small></div></div>'
+    + '<div class="card"><div class="k">已驳回</div><div class="v">'+rows.filter(r=>r.status==='已驳回').length+'<small>张</small></div></div>'
+    + '</div>';
+  h += tbl([
+    {t:'单号',k:'no'},
+    {t:'成本中心',f:r=>(r.center||'')+' '+(r.centerName||'')},
+    {t:'科目',f:r=>(r.subject||'')+' '+(r.subjectName||'')},
+    {t:'类别',k:'category'},
+    {t:'摘要',k:'summary'},
+    {t:'金额',r:1,f:r=>money(r.amount)},
+    {t:'申请人',k:'applicant'},
+    {t:'状态',f:r=>{const m={'已批准':'t-ok','待审批':'t-w','已驳回':'t-b','草稿':'t-i'};return '<span class="tag '+(m[r.status]||'t-i')+'">'+(r.status||'—')+'</span>';}}
+  ], rows);
+  return h;
+}});
+
+page({id:'alloc', t:'阶梯分摊', render(){
+  const runs = L('alloc');
+  let h = tbl([
+    {t:'批次号',k:'no'},{t:'期间',k:'period'},{t:'方法',k:'method'},
+    {t:'归集基数',r:1,f:r=>money(r.baseTotal)},
+    {t:'已分摊',r:1,f:r=>money(r.allocatedTotal)},
+    {t:'差额校验',r:1,f:r=>'<span class="'+(Math.abs(r.checkDiff||0)<0.01?'pos':'neg')+'">'+money(r.checkDiff)+'</span>'},
+    {t:'状态',f:r=>'<span class="tag '+(Math.abs(r.checkDiff||0)<0.01?'t-ok':'t-b')+'">'+(Math.abs(r.checkDiff||0)<0.01?'守恒':'不平')+'</span>'},
+    {t:'执行人',k:'operator'}
+  ], runs);
+
+  const cs = L('centers').filter(c=>c.allocOut>0);
+  if(cs.length){
+    h += '<h2>摊出明细（按分摊顺序）</h2>' + tbl([
+      {t:'顺序',r:1,k:'allocOrder'},
+      {t:'成本中心',f:r=>(r.code||'')+' '+(r.name||'')},
+      {t:'类型',k:'ctype'},
+      {t:'分配标准',k:'driver'},
+      {t:'分入',r:1,f:r=>money(r.allocIn)},
+      {t:'摊出',r:1,f:r=>money(r.allocOut)},
+      {t:'留存',r:1,f:r=>money(r.total)}
+    ], cs);
+  }
+
+  h += '<h2>分摊规则</h2>' + tbl([
+    {t:'分摊方',f:r=>(r.from||'')+' '+(r.fromName||'')},
+    {t:'顺序',r:1,k:'fromOrder'},
+    {t:'接收方',f:r=>(r.to||'')+' '+(r.toName||'')},
+    {t:'接收顺序',r:1,k:'toOrder'},
+    {t:'分配标准',k:'driver'},
+    {t:'权重',r:1,f:r=>num(r.weight)},
+    {t:'启用',f:r=>r.enabled?'<span class="tag t-ok">是</span>':'<span class="tag t-b">否</span>'}
+  ], L('rules'));
+
+  h += '<div class="note">阶梯（顺序）分摊法：辅助中心按顺序把「自身归集 + 上游分入」全额摊出，<b>禁止回分</b>（只能分给顺序更大的中心），末位中心吸收取整尾差，保证 baseTotal = allocatedTotal 分毫不差。</div>';
+  return h;
+}});
+
+page({id:'budget', t:'预算管控', render(){
+  return tbl([
+    {t:'期间',k:'period'},
+    {t:'成本中心',f:r=>(r.center||'')+' '+(r.centerName||'')},
+    {t:'科目',f:r=>(r.subject||'')+' '+(r.subjectName||'')},
+    {t:'预算额',r:1,f:r=>money(r.amount)},
+    {t:'已用',r:1,f:r=>money(r.used)},
+    {t:'剩余',r:1,f:r=>money(r.left)},
+    {t:'执行率',r:1,f:r=>pct(r.rate)},
+    {t:'进度',f:r=>{const v=Math.min((r.rate||0)*100,100);const c=(r.rate||0)>1?'b':((r.rate||0)>=0.9?'w':'');return '<div class="bar"><i class="'+c+'" style="width:'+v+'%"></i></div>';}},
+    {t:'状态',f:r=>{const v=r.rate||0;const t=v>1.1?['超支阻断','t-b']:(v>1?['超支','t-b']:(v>=0.9?['预警','t-w']:['正常','t-ok']));return '<span class="tag '+t[1]+'">'+t[0]+'</span>';}}
+  ], L('budgets'));
+}});
+
+page({id:'var', t:'差异分析', render(){
+  const rows = L('vars');
+  let h = tbl([
+    {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+    {t:'产量',r:1,f:r=>num(r.qty)},
+    {t:'标准成本',r:1,f:r=>money(r.stdTotal)},
+    {t:'实际成本',r:1,f:r=>money(r.actTotal)},
+    {t:'价差',r:1,f:r=>'<span class="'+sgn(r.priceVar)+'">'+money(r.priceVar)+'</span>'},
+    {t:'量差',r:1,f:r=>'<span class="'+sgn(r.qtyVar)+'">'+money(r.qtyVar)+'</span>'},
+    {t:'工资率差',r:1,f:r=>'<span class="'+sgn(r.rateVar)+'">'+money(r.rateVar)+'</span>'},
+    {t:'效率差',r:1,f:r=>'<span class="'+sgn(r.effVar)+'">'+money(r.effVar)+'</span>'},
+    {t:'耗费差',r:1,f:r=>'<span class="'+sgn(r.expenseVar)+'">'+money(r.expenseVar)+'</span>'},
+    {t:'总差异',r:1,f:r=>'<b class="'+sgn(r.totalVar)+'">'+money(r.totalVar)+'</b>'},
+    {t:'校验',r:1,f:r=>Math.abs(r.checkDiff||0)<0.01?'<span class="tag t-ok">闭合</span>':'<span class="tag t-b">'+money(r.checkDiff)+'</span>'},
+    {t:'等级',f:r=>{const l=r.level||'';return '<span class="tag '+(l==='不利'?'t-b':'t-ok')+'">'+(l||'正常')+'</span>';}}
+  ], rows);
+  h += '<div class="note">五维差异（预定分配率法）：价差 =（实价 − 标价）× 实量；量差 =（实量 − 标量）× 标价；工资率差 =（实率 − 标率）× 实工时；效率差 =（实工时 − 标工时）× 标率；耗费差 = 实制费 − 实工时 × 标准分配率。<b>五项之和 = 实际 − 标准</b>，校验列全部为「闭合」。</div>';
+  return h;
+}});
+
+page({id:'report', t:'报表中心', render(){
+  let h = '<h2>成本中心汇总</h2>' + tbl([
+    {t:'编码',k:'code'},{t:'成本中心',k:'name'},{t:'类型',k:'ctype'},
+    {t:'直接归集',r:1,f:r=>money(r.direct)},
+    {t:'分入',r:1,f:r=>money(r.allocIn)},
+    {t:'摊出',r:1,f:r=>money(r.allocOut)},
+    {t:'留存成本',r:1,f:r=>'<b>'+money(r.total)+'</b>'},
+    {t:'预算',r:1,f:r=>money(r.budget)},
+    {t:'执行率',r:1,f:r=>pct(r.rate)}
+  ], L('rep_center'));
+
+  h += '<h2>产品成本卡</h2>' + tbl([
+    {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+    {t:'产量',r:1,f:r=>num(r.qty)},
+    {t:'单位标准',r:1,f:r=>money(r.stdUnit)},
+    {t:'单位实际',r:1,f:r=>money(r.actUnit)},
+    {t:'标准总成本',r:1,f:r=>money(r.stdTotal)},
+    {t:'实际总成本',r:1,f:r=>money(r.actTotal)},
+    {t:'差异',r:1,f:r=>'<span class="'+sgn(r.var)+'">'+money(r.var)+'</span>'},
+    {t:'差异率',r:1,f:r=>pct(r.varRate)},
+    {t:'等级',f:r=>'<span class="tag '+(r.level==='不利'?'t-b':'t-ok')+'">'+(r.level||'正常')+'</span>'}
+  ], L('rep_prod'));
+  return h;
+}});
+
+page({id:'period', t:'期间结账', render(){
+  let h = tbl([
+    {t:'期间',k:'period'},
+    {t:'状态',f:r=>r.status==='已结账'?'<span class="tag t-b">已结账</span>':'<span class="tag t-ok">打开</span>'},
+    {t:'费用单',r:1,k:'expenseCount'},
+    {t:'待审批',r:1,f:r=>r.pendingExpenses>0?'<span class="tag t-w">'+r.pendingExpenses+'</span>':r.pendingExpenses},
+    {t:'工单',r:1,k:'orderCount'},
+    {t:'在制',r:1,f:r=>r.openOrders>0?'<span class="tag t-w">'+r.openOrders+'</span>':r.openOrders},
+    {t:'已分摊',f:r=>r.allocDone?'<span class="tag t-ok">是</span>':'<span class="tag t-b">否</span>'},
+    {t:'费用合计',r:1,f:r=>money(r.expenseTotal)},
+    {t:'结账时间',f:r=>r.closedAt||'—'}
+  ], L('periods'));
+  h += '<div class="note">结账三闸口：无待审批费用单、无未完工工单、已执行本期分摊。三者全部满足才允许结账；结账后一切写入返回 409，需反结账才能修改。</div>';
+  return h;
+}});
+
+let cur = PAGES[0].id;
+function go(id){
+  cur = id;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.id===id));
+  const p = PAGES.find(x=>x.id===id);
+  $('#main').innerHTML = p.render();
+  window.scrollTo(0,0);
+}
+$('#nav').innerHTML = PAGES.map(p=>'<button data-id="'+p.id+'" onclick="go(\''+p.id+'\')">'+p.t+'</button>').join('');
+go(cur);
+</script>
+</body>
+</html>
