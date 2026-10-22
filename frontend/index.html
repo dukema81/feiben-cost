@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>飞奔成本管理系统</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="logo">飞奔成本管理系统<small>FEIBEN COST v1.0</small></div>
+    <nav id="nav"></nav>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <h2 id="ptitle">成本驾驶舱</h2>
+      <div class="peri">期间
+        <select id="period"></select>
+        <span id="pstate" class="tag gray">—</span>
+      </div>
+      <div class="who">
+        <span id="who">—</span>
+        <button class="out" id="logout">退出</button>
+      </div>
+    </header>
+    <div class="body" id="view"></div>
+  </div>
+</div>
+<div class="mask hide" id="mask"><div class="dlg" id="dlg"></div></div>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+<script src="dashboard.js"></script>
+<script src="master.js"></script>
+<script src="cost.js"></script>
+<script src="alloc.js"></script>
+<script src="ana.js"></script>
+<script src="sys.js"></script>
+<script>App.start();</script>
+</body>
+</html>
