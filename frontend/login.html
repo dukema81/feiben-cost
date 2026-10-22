@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>飞奔成本管理系统</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="login-wrap">
+  <form class="login-box" id="f">
+    <h1>飞奔成本管理系统</h1>
+    <div class="sub">FeiBen Cost Management · 标准成本 / 实际归集 / 差异分析</div>
+    <label for="u">账号</label>
+    <input id="u" value="admin" autocomplete="username" autofocus>
+    <label for="p">密码</label>
+    <input id="p" type="password" value="" placeholder="请输入密码" autocomplete="current-password">
+    <button type="submit" id="btn">登 录</button>
+    <div class="login-err" id="err"></div>
+    <div class="login-tip">
+      演示账号：admin / cost@2026<br>
+      其他角色：manager（成本经理）、acct（成本会计）、owner（中心负责人）、prod（生产统计）
+    </div>
+  </form>
+</div>
+<script>
+const f = document.getElementById('f'), err = document.getElementById('err'), btn = document.getElementById('btn');
+f.addEventListener('submit', async (e) => {
+  e.preventDefault(); err.textContent = ''; btn.disabled = true; btn.textContent = '登录中…';
+  try {
+    const r = await fetch('api/auth/login', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username: document.getElementById('u').value.trim(),
+                            password: document.getElementById('p').value})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message || '登录失败');
+    localStorage.setItem('fb_token', d.token);
+    localStorage.setItem('fb_user', JSON.stringify(d.user));
+    location.href = 'index.html';
+  } catch (ex) {
+    err.textContent = ex.message; btn.disabled = false; btn.textContent = '登 录';
+  }
+});
+</script>
+</body>
+</html>
