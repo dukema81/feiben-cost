@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>飞奔成本管理系统 · 离线演示</title>
+<style>
+:root{--bg:#0f1620;--panel:#16202c;--line:#243343;--tx:#e6edf5;--sub:#8ba0b8;--acc:#2f9e6e;--warn:#e6a23c;--bad:#e0544b;--blu:#3d8bfd}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;padding:0 0 60px}
+header{background:linear-gradient(120deg,#12303f,#0f1620 70%);padding:26px 40px 0;border-bottom:1px solid var(--line)}
+h1{font-size:22px;font-weight:600;letter-spacing:.5px}
+h1 span.c{color:#4fd18b}
+.sub{color:var(--sub);font-size:13px;margin-top:6px}
+.badge{display:inline-block;background:#1d3a2e;color:#4fd18b;border:1px solid #2f6b4d;border-radius:20px;padding:1px 10px;font-size:12px;margin-left:10px;vertical-align:middle}
+nav{display:flex;gap:4px;padding:18px 0;flex-wrap:wrap}
+nav button{background:transparent;border:1px solid var(--line);color:var(--sub);padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px}
+nav button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+main{padding:24px 40px;max-width:1440px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc)}
+.card.w::before{background:var(--warn)}.card.b::before{background:var(--bad)}.card.u::before{background:var(--blu)}
+.k{color:var(--sub);font-size:12px}
+.v{font-size:23px;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}
+.v small{font-size:12px;color:var(--sub);margin-left:4px;font-weight:400}
+h2{font-size:15px;font-weight:600;margin:28px 0 12px;color:#cfe0f0}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13px}
+th{background:#1b2836;color:var(--sub);font-weight:500;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:12px}
+td{padding:9px 12px;border-bottom:1px solid #1c2733;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#1a2532}
+.r{text-align:right}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px}
+.t-ok{background:#173728;color:#4fd18b}.t-w{background:#3a2e16;color:#e6a23c}
+.t-b{background:#3a1d1b;color:#f0796f}.t-i{background:#182b42;color:#6aa9f5}
+.bar{height:7px;background:#1c2733;border-radius:4px;overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.bar i.w{background:var(--warn)}.bar i.b{background:var(--bad)}
+.pos{color:#4fd18b}.neg{color:#f0796f}
+footer{color:#5a6b80;font-size:12px;padding:34px 40px 0;text-align:center;line-height:1.9}
+.note{background:#1a2330;border-left:3px solid var(--blu);padding:12px 16px;border-radius:6px;color:#a8bccf;font-size:13px;margin-bottom:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1>飞奔成本管理系统 <span class="c">V1.0</span><span class="badge">离线演示快照</span></h1>
+  <div class="sub">标准成本 · 实际归集 · 约当产量 · 五维差异 · 阶梯分摊 · 预算闸口 · 期间结账</div>
+  <nav id="nav"></nav>
+</header>
+<main id="main"></main>
+<footer>本页为静态快照，数据取自线上实例 2026-10 期间，仅展示不含写操作。<br>完整体验：http://42.193.158.63/cost/ &nbsp;·&nbsp; 源码：https://github.com/dukema81/feiben-cost</footer>
+<script>
+const D = {"board":{"kpi":{"period":"2026-10","periodStatus":"打开","centers":10,"products":8,"directCost":505300.0,"allocated":146500.0,"allocCheck":0.0,"stdTotal":699926.0,"actTotal":748366.0,"variance":48440.0,"varianceRate":0.0692,"pendingExpenses":2,"openOrders":3,"budget":{"amount":593000.0,"used":505300.0,"rate":0.8521,"level":"正常"}},"trend":[{"period":"2026-05","standard":0.0,"actual":0.0,"direct":0.0},{"period":"2026-06","standard":0.0,"actual":0.0,"direct":0.0},{"period":"2026-07","standard":0.0,"actual":0.0,"direct":0.0},{"period":"2026-08","standard":0.0,"actual":0.0,"direct":0.0},{"period":"2026-09","standard":474696.0,"actual":520261.67,"direct":384800.0},{"period":"2026-10","standard":699926.0,"actual":748366.0,"direct":505300.0}],"category":[{"name":"人工","amount":45000.0},{"name":"制造费用","amount":364700.0},{"name":"期间费用","amount":95600.0}],"centerTop":[{"code":"CC101","name":"注塑车间","amount":132100.0},{"code":"CC201","name":"动力辅助车间","amount":99600.0},{"code":"CC102","name":"冲压车间","amount":82300.0},{"code":"CC103","name":"装配车间","amount":48800.0},{"code":"CC501","name":"研发中心","amount":42600.0},{"code":"CC202","name":"设备维修组","amount":28100.0},{"code":"CC401","name":"销售中心","amount":26800.0},{"code":"CC203","name":"品质检验组","amount":18800.0}],"topVariance":[{"product":"P3001","variance":13469.22,"actTotal":233115.22},{"product":"P2001","variance":12034.94,"actTotal":111574.94},{"product":"P1001","variance":11421.79,"actTotal":267111.79},{"product":"P1003","variance":10954.66,"actTotal":77654.66},{"product":"P2003","variance":559.39,"actTotal":58909.39}]},"centers":{"list":[{"code":"CC201","name":"动力辅助车间","ctype":"辅助","parent":"","leader":"王工","laborRate":0.0,"ohRate":0.0,"allocOrder":1,"driver":"机器工时","driverQty":4200.0,"status":"启用","remark":"","directCost":99600.0,"allocIn":0.0,"allocOut":99600.0,"netCost":0.0,"orderCount":0},{"code":"CC202","name":"设备维修组","ctype":"辅助","parent":"","leader":"李强","laborRate":32.0,"ohRate":6.0,"allocOrder":2,"driver":"人工工时","driverQty":1600.0,"status":"启用","remark":"","directCost":28100.0,"allocIn":0.0,"allocOut":28100.0,"netCost":0.0,"orderCount":0},{"code":"CC203","name":"品质检验组","ctype":"辅助","parent":"","leader":"陈敏","laborRate":30.0,"ohRate":4.0,"allocOrder":3,"driver":"人工工时","driverQty":1200.0,"status":"启用","remark":"","directCost":18800.0,"allocIn":0.0,"allocOut":18800.0,"netCost":0.0,"orderCount":0},{"code":"CC101","name":"注塑车间","ctype":"生产","parent":"","leader":"赵勇","laborRate":38.0,"ohRate":26.0,"allocOrder":5,"driver":"机器工时","driverQty":9600.0,"status":"启用","remark":"","directCost":132100.0,"allocIn":58468.49,"allocOut":0.0,"netCost":190568.49,"orderCount":4},{"code":"CC102","name":"冲压车间","ctype":"生产","parent":"","leader":"孙磊","laborRate":36.0,"ohRate":24.0,"allocOrder":5,"driver":"机器工时","driverQty":7200.0,"status":"启用","remark":"","directCost":82300.0,"allocIn":45492.19,"allocOut":0.0,"netCost":127792.19,"orderCount":3},{"code":"CC103","name":"装配车间","ctype":"生产","parent":"","leader":"周洁","laborRate":34.0,"ohRate":20.0,"allocOrder":5,"driver":"人工工时","driverQty":5200.0,"status":"启用","remark":"","directCost":48800.0,"allocIn":42539.32,"allocOut":0.0,"netCost":91339.32,"orderCount":3},{"code":"CC301","name":"生产管理部","ctype":"管理","parent":"","leader":"吴涛","laborRate":42.0,"ohRate":0.0,"allocOrder":6,"driver":"人数","driverQty":24.0,"status":"启用","remark":"","directCost":16800.0,"allocIn":0.0,"allocOut":0.0,"netCost":16800.0,"orderCount":0},{"code":"CC302","name":"财务部","ctype":"管理","parent":"","leader":"郑霞","laborRate":45.0,"ohRate":0.0,"allocOrder":7,"driver":"人数","driverQty":9.0,"status":"启用","remark":"","directCost":9400.0,"allocIn":0.0,"allocOut":0.0,"netCost":9400.0,"orderCount":0},{"code":"CC401","name":"销售中心","ctype":"销售","parent":"","leader":"冯磊","laborRate":40.0,"ohRate":0.0,"allocOrder":8,"driver":"人数","driverQty":14.0,"status":"启用","remark":"","directCost":26800.0,"allocIn":0.0,"allocOut":0.0,"netCost":26800.0,"orderCount":0},{"code":"CC501","name":"研发中心","ctype":"研发","parent":"","leader":"许工","laborRate":46.0,"ohRate":8.0,"allocOrder":8,"driver":"人工工时","driverQty":2200.0,"status":"启用","remark":"","directCost":42600.0,"allocIn":0.0,"allocOut":0.0,"netCost":42600.0,"orderCount":0}],"period":"2026-10","types":["生产","辅助","管理","销售","研发"],"drivers":["人工工时","机器工时","面积","人数","直接成本","用量"]},"subjects":{"list":[{"code":"S1001","name":"直接材料","category":"材料","gather":"直接","enabled":true,"remark":""},{"code":"S1002","name":"辅助材料","category":"材料","gather":"间接","enabled":true,"remark":""},{"code":"S1003","name":"外购件","category":"材料","gather":"直接","enabled":true,"remark":""},{"code":"S2001","name":"直接人工","category":"人工","gather":"直接","enabled":true,"remark":""},{"code":"S2002","name":"加班工资","category":"人工","gather":"间接","enabled":true,"remark":""},{"code":"S2003","name":"社保公积金","category":"人工","gather":"间接","enabled":true,"remark":""},{"code":"S3001","name":"电费","category":"制造费用","gather":"间接","enabled":true,"remark":""},{"code":"S3002","name":"水费","category":"制造费用","gather":"间接","enabled":true,"remark":""},{"code":"S3003","name":"设备折旧","category":"制造费用","gather":"间接","enabled":true,"remark":""},{"code":"S3004","name":"维修费","category":"制造费用","gather":"间接","enabled":true,"remark":""},{"code":"S3005","name":"低值易耗品","category":"制造费用","gather":"间接","enabled":true,"remark":""},{"code":"S4001","name":"办公费","category":"期间费用","gather":"间接","enabled":true,"remark":""},{"code":"S4002","name":"差旅费","category":"期间费用","gather":"间接","enabled":true,"remark":""},{"code":"S4003","name":"业务招待费","category":"期间费用","gather":"间接","enabled":true,"remark":""},{"code":"S4004","name":"研发材料费","category":"期间费用","gather":"间接","enabled":true,"remark":""}],"categories":["材料","人工","制造费用","期间费用"]},"products":{"list":[{"code":"P1001","name":"电机外壳 A 型","spec":"180×120×90","unit":"件","stdHours":0.35,"center":"CC101","centerName":"注塑车间","listPrice":28.0,"status":"在产","remark":"","bomCount":3,"stdUnitCost":28.41,"stdMat":6.01,"stdLabor":13.3,"stdOh":9.1},{"code":"P1002","name":"齿轮箱盖","spec":"150×150×40","unit":"件","stdHours":0.28,"center":"CC101","centerName":"注塑车间","listPrice":22.0,"status":"在产","remark":"","bomCount":2,"stdUnitCost":22.21,"stdMat":4.29,"stdLabor":10.64,"stdOh":7.28},{"code":"P1003","name":"控制盒上盖","spec":"120×80×30","unit":"件","stdHours":0.31,"center":"CC101","centerName":"注塑车间","listPrice":25.0,"status":"在产","remark":"","bomCount":2,"stdUnitCost":26.68,"stdMat":6.84,"stdLabor":11.78,"stdOh":8.06},{"code":"P2001","name":"电机支架","spec":"1.2mm 冷轧","unit":"件","stdHours":0.22,"center":"CC102","centerName":"冲压车间","listPrice":15.0,"status":"在产","remark":"","bomCount":2,"stdUnitCost":16.59,"stdMat":3.39,"stdLabor":7.92,"stdOh":5.28},{"code":"P2002","name":"电机端盖","spec":"0.8mm 不锈钢","unit":"件","stdHours":0.18,"center":"CC102","centerName":"冲压车间","listPrice":12.0,"status":"在产","remark":"","bomCount":2,"stdUnitCost":22.98,"stdMat":12.18,"stdLabor":6.48,"stdOh":4.32},{"code":"P2003","name":"散热支架","spec":"6063 铝型材","unit":"件","stdHours":0.2,"center":"CC102","centerName":"冲压车间","listPrice":16.5,"status":"在产","remark":"","bomCount":1,"stdUnitCost":19.45,"stdMat":7.45,"stdLabor":7.2,"stdOh":4.8},{"code":"P3001","name":"电动工具整机","spec":"24V 无刷","unit":"台","stdHours":1.2,"center":"CC103","centerName":"装配车间","listPrice":320.0,"status":"在产","remark":"","bomCount":5,"stdUnitCost":156.89,"stdMat":92.09,"stdLabor":40.8,"stdOh":24.0},{"code":"P3002","name":"家用风扇整机","spec":"16 寸","unit":"台","stdHours":0.9,"center":"CC103","centerName":"装配车间","listPrice":210.0,"status":"在产","remark":"","bomCount":4,"stdUnitCost":137.26,"stdMat":88.66,"stdLabor":30.6,"stdOh":18.0}],"period":"2026-10"},"std":{"list":[{"period":"2026-10","product":"P1001","productName":"电机外壳 A 型","unit":"件","version":1,"matCost":6.01,"laborCost":13.3,"ohCost":9.1,"unitCost":28.41,"status":"已发布","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P1002","productName":"齿轮箱盖","unit":"件","version":1,"matCost":4.29,"laborCost":10.64,"ohCost":7.28,"unitCost":22.21,"status":"已发布","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P1003","productName":"控制盒上盖","unit":"件","version":1,"matCost":6.84,"laborCost":11.78,"ohCost":8.06,"unitCost":26.68,"status":"已发布","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P2001","productName":"电机支架","unit":"件","version":1,"matCost":3.39,"laborCost":7.92,"ohCost":5.28,"unitCost":16.59,"status":"已发布","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P2002","productName":"电机端盖","unit":"件","version":1,"matCost":12.18,"laborCost":6.48,"ohCost":4.32,"unitCost":22.98,"status":"已发布","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P2003","productName":"散热支架","unit":"件","version":1,"matCost":7.45,"laborCost":7.2,"ohCost":4.8,"unitCost":19.45,"status":"已发布","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P3001","productName":"电动工具整机","unit":"台","version":1,"matCost":92.09,"laborCost":40.8,"ohCost":24.0,"unitCost":156.89,"status":"已发布","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P3002","productName":"家用风扇整机","unit":"台","version":1,"matCost":88.66,"laborCost":30.6,"ohCost":18.0,"unitCost":137.26,"status":"已发布","calcAt":"2026-10-22 10:39:34"}],"period":"2026-10"},"orders":{"list":[{"no":"WO202610-0010","product":"P3001","productName":"电动工具整机","unit":"台","period":"2026-10","center":"CC103","centerName":"装配车间","qtyPlan":600.0,"qtyDone":600.0,"wipQty":0.0,"wipRate":1.0,"status":"已完工","startDate":"2026-10-02","endDate":"2026-10-28","mat":58671.47,"labor":25579.28,"oh":14811.4,"total":99062.15,"unitCost":165.1036,"equivQty":600.0,"finishedCost":99062.15,"wipCost":0.0,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0009","product":"P3002","productName":"家用风扇整机","unit":"台","period":"2026-10","center":"CC103","centerName":"装配车间","qtyPlan":1200.0,"qtyDone":1100.0,"wipQty":100.0,"wipRate":0.7,"status":"在生产","startDate":"2026-10-02","endDate":"","mat":106893.27,"labor":43780.66,"oh":25089.2,"total":175763.13,"unitCost":150.2249,"equivQty":1170.0,"finishedCost":165247.39,"wipCost":10515.74,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0008","product":"P3001","productName":"电动工具整机","unit":"台","period":"2026-10","center":"CC103","centerName":"装配车间","qtyPlan":800.0,"qtyDone":800.0,"wipQty":0.0,"wipRate":1.0,"status":"已完工","startDate":"2026-10-02","endDate":"2026-10-28","mat":72706.21,"labor":38928.86,"oh":22418.0,"total":134053.07,"unitCost":167.5663,"equivQty":800.0,"finishedCost":134053.07,"wipCost":0.0,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0007","product":"P2003","productName":"散热支架","unit":"件","period":"2026-10","center":"CC102","centerName":"冲压车间","qtyPlan":3000.0,"qtyDone":3000.0,"wipQty":0.0,"wipRate":1.0,"status":"已完工","startDate":"2026-10-02","endDate":"2026-10-28","mat":21795.69,"labor":22148.5,"oh":14965.2,"total":58909.39,"unitCost":19.6365,"equivQty":3000.0,"finishedCost":58909.39,"wipCost":0.0,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0006","product":"P2002","productName":"电机端盖","unit":"件","period":"2026-10","center":"CC102","centerName":"冲压车间","qtyPlan":4000.0,"qtyDone":3500.0,"wipQty":500.0,"wipRate":0.5,"status":"在生产","startDate":"2026-10-02","endDate":"","mat":48790.52,"labor":32027.55,"oh":20437.68,"total":101255.75,"unitCost":27.0015,"equivQty":3750.0,"finishedCost":94505.37,"wipCost":6750.38,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0005","product":"P2001","productName":"电机支架","unit":"件","period":"2026-10","center":"CC102","centerName":"冲压车间","qtyPlan":6000.0,"qtyDone":6000.0,"wipQty":0.0,"wipRate":1.0,"status":"已完工","startDate":"2026-10-02","endDate":"2026-10-28","mat":20872.41,"labor":54619.97,"oh":36082.56,"total":111574.94,"unitCost":18.5958,"equivQty":6000.0,"finishedCost":111574.94,"wipCost":0.0,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0004","product":"P1003","productName":"控制盒上盖","unit":"件","period":"2026-10","center":"CC101","centerName":"注塑车间","qtyPlan":2500.0,"qtyDone":2500.0,"wipQty":0.0,"wipRate":1.0,"status":"已完工","startDate":"2026-10-02","endDate":"2026-10-28","mat":17743.61,"labor":35850.39,"oh":24060.66,"total":77654.66,"unitCost":31.0619,"equivQty":2500.0,"finishedCost":77654.66,"wipCost":0.0,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0003","product":"P1002","productName":"齿轮箱盖","unit":"件","period":"2026-10","center":"CC101","centerName":"注塑车间","qtyPlan":3000.0,"qtyDone":2600.0,"wipQty":400.0,"wipRate":0.6,"status":"在生产","startDate":"2026-10-02","endDate":"","mat":13067.03,"labor":33717.41,"oh":22973.08,"total":69757.52,"unitCost":24.5625,"equivQty":2840.0,"finishedCost":63862.52,"wipCost":5895.0,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0002","product":"P1001","productName":"电机外壳 A 型","unit":"件","period":"2026-10","center":"CC101","centerName":"注塑车间","qtyPlan":4000.0,"qtyDone":4000.0,"wipQty":0.0,"wipRate":1.0,"status":"已完工","startDate":"2026-10-02","endDate":"2026-10-28","mat":23750.66,"labor":55937.56,"oh":38639.12,"total":118327.34,"unitCost":29.5818,"equivQty":4000.0,"finishedCost":118327.34,"wipCost":0.0,"calcAt":"2026-10-22 10:39:34","remark":""},{"no":"WO202610-0001","product":"P1001","productName":"电机外壳 A 型","unit":"件","period":"2026-10","center":"CC101","centerName":"注塑车间","qtyPlan":5000.0,"qtyDone":5000.0,"wipQty":0.0,"wipRate":1.0,"status":"已完工","startDate":"2026-10-02","endDate":"2026-10-28","mat":31225.42,"labor":70851.59,"oh":46707.44,"total":148784.45,"unitCost":29.7569,"equivQty":5000.0,"finishedCost":148784.45,"wipCost":0.0,"calcAt":"2026-10-22 10:39:34","remark":""}],"states":["草稿","在生产","已完工","已关闭"]},"expenses":{"list":[{"no":"EXP202610-0020","period":"2026-10","center":"CC101","centerName":"注塑车间","subject":"S3004","subjectName":"维修费","category":"制造费用","amount":4200.0,"source":"报销","docRef":"","summary":"注塑机螺杆维修","status":"草稿","applicant":"acct","approver":"","decidedAt":"","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0019","period":"2026-10","center":"CC501","centerName":"研发中心","subject":"S4001","subjectName":"办公费","category":"期间费用","amount":7200.0,"source":"报销","docRef":"","summary":"研发部办公费","status":"草稿","applicant":"acct","approver":"","decidedAt":"","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0018","period":"2026-10","center":"CC501","centerName":"研发中心","subject":"S4004","subjectName":"研发材料费","category":"期间费用","amount":42600.0,"source":"采购","docRef":"","summary":"新品试制材料","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0017","period":"2026-10","center":"CC401","centerName":"销售中心","subject":"S4002","subjectName":"差旅费","category":"期间费用","amount":18500.0,"source":"报销","docRef":"","summary":"销售出差","status":"待审批","applicant":"acct","approver":"","decidedAt":"","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0016","period":"2026-10","center":"CC401","centerName":"销售中心","subject":"S4003","subjectName":"业务招待费","category":"期间费用","amount":26800.0,"source":"报销","docRef":"","summary":"客户招待","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0015","period":"2026-10","center":"CC302","centerName":"财务部","subject":"S4001","subjectName":"办公费","category":"期间费用","amount":9400.0,"source":"报销","docRef":"","summary":"财务部办公费","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0014","period":"2026-10","center":"CC301","centerName":"生产管理部","subject":"S4002","subjectName":"差旅费","category":"期间费用","amount":12600.0,"source":"报销","docRef":"","summary":"车间主任出差","status":"待审批","applicant":"acct","approver":"","decidedAt":"","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0013","period":"2026-10","center":"CC301","centerName":"生产管理部","subject":"S4001","subjectName":"办公费","category":"期间费用","amount":16800.0,"source":"报销","docRef":"","summary":"生产管理部办公费","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0012","period":"2026-10","center":"CC203","centerName":"品质检验组","subject":"S2002","subjectName":"加班工资","category":"人工","amount":8600.0,"source":"工资","docRef":"","summary":"检验加班","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0011","period":"2026-10","center":"CC203","centerName":"品质检验组","subject":"S3005","subjectName":"低值易耗品","category":"制造费用","amount":10200.0,"source":"采购","docRef":"","summary":"检具耗材","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0010","period":"2026-10","center":"CC202","centerName":"设备维修组","subject":"S3005","subjectName":"低值易耗品","category":"制造费用","amount":6800.0,"source":"采购","docRef":"","summary":"维修班工具","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0009","period":"2026-10","center":"CC202","centerName":"设备维修组","subject":"S3004","subjectName":"维修费","category":"制造费用","amount":21300.0,"source":"报销","docRef":"","summary":"空压机大修","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0008","period":"2026-10","center":"CC201","centerName":"动力辅助车间","subject":"S3002","subjectName":"水费","category":"制造费用","amount":18400.0,"source":"采购","docRef":"","summary":"厂区水费 10 月","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0007","period":"2026-10","center":"CC201","centerName":"动力辅助车间","subject":"S3001","subjectName":"电费","category":"制造费用","amount":81200.0,"source":"采购","docRef":"","summary":"厂区总电费 10 月","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0006","period":"2026-10","center":"CC103","centerName":"装配车间","subject":"S3005","subjectName":"低值易耗品","category":"制造费用","amount":12400.0,"source":"采购","docRef":"","summary":"装配线低值易耗","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0005","period":"2026-10","center":"CC103","centerName":"装配车间","subject":"S2002","subjectName":"加班工资","category":"人工","amount":36400.0,"source":"工资","docRef":"","summary":"装配加班工资","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0004","period":"2026-10","center":"CC102","centerName":"冲压车间","subject":"S3003","subjectName":"设备折旧","category":"制造费用","amount":28500.0,"source":"折旧","docRef":"","summary":"冲床折旧 4 台","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0003","period":"2026-10","center":"CC102","centerName":"冲压车间","subject":"S3001","subjectName":"电费","category":"制造费用","amount":53800.0,"source":"采购","docRef":"","summary":"冲压车间 10 月电费","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0002","period":"2026-10","center":"CC101","centerName":"注塑车间","subject":"S3003","subjectName":"设备折旧","category":"制造费用","amount":42000.0,"source":"折旧","docRef":"","summary":"注塑机折旧 6 台","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"},{"no":"EXP202610-0001","period":"2026-10","center":"CC101","centerName":"注塑车间","subject":"S3001","subjectName":"电费","category":"制造费用","amount":90100.0,"source":"采购","docRef":"","summary":"注塑车间 10 月电费","status":"已批准","applicant":"acct","approver":"manager","decidedAt":"2026-10-22 10:39:34","createdAt":"2026-10-22 10:39:34"}],"approvedTotal":505300.0,"states":["草稿","待审批","已批准","已驳回"],"sources":["手工","采购","工资","折旧","报销","摊销","转入"]},"budgets":{"list":[{"period":"2026-10","center":"CC101","centerName":"注塑车间","subject":"S3001","subjectName":"电费","category":"制造费用","amount":95000.0,"used":90100.0,"rate":0.9484,"level":"预警","left":4900.0},{"period":"2026-10","center":"CC101","centerName":"注塑车间","subject":"S3003","subjectName":"设备折旧","category":"制造费用","amount":44000.0,"used":42000.0,"rate":0.9545,"level":"预警","left":2000.0},{"period":"2026-10","center":"CC101","centerName":"注塑车间","subject":"S3004","subjectName":"维修费","category":"制造费用","amount":6000.0,"used":0.0,"rate":0.0,"level":"正常","left":6000.0},{"period":"2026-10","center":"CC102","centerName":"冲压车间","subject":"S3001","subjectName":"电费","category":"制造费用","amount":56000.0,"used":53800.0,"rate":0.9607,"level":"预警","left":2200.0},{"period":"2026-10","center":"CC102","centerName":"冲压车间","subject":"S3003","subjectName":"设备折旧","category":"制造费用","amount":30000.0,"used":28500.0,"rate":0.95,"level":"预警","left":1500.0},{"period":"2026-10","center":"CC103","centerName":"装配车间","subject":"S2002","subjectName":"加班工资","category":"人工","amount":40000.0,"used":36400.0,"rate":0.91,"level":"预警","left":3600.0},{"period":"2026-10","center":"CC103","centerName":"装配车间","subject":"S3005","subjectName":"低值易耗品","category":"制造费用","amount":15000.0,"used":12400.0,"rate":0.8267,"level":"正常","left":2600.0},{"period":"2026-10","center":"CC201","centerName":"动力辅助车间","subject":"S3001","subjectName":"电费","category":"制造费用","amount":88000.0,"used":81200.0,"rate":0.9227,"level":"预警","left":6800.0},{"period":"2026-10","center":"CC201","centerName":"动力辅助车间","subject":"S3002","subjectName":"水费","category":"制造费用","amount":20000.0,"used":18400.0,"rate":0.92,"level":"预警","left":1600.0},{"period":"2026-10","center":"CC202","centerName":"设备维修组","subject":"S3004","subjectName":"维修费","category":"制造费用","amount":25000.0,"used":21300.0,"rate":0.852,"level":"正常","left":3700.0},{"period":"2026-10","center":"CC202","centerName":"设备维修组","subject":"S3005","subjectName":"低值易耗品","category":"制造费用","amount":8000.0,"used":6800.0,"rate":0.85,"level":"正常","left":1200.0},{"period":"2026-10","center":"CC203","centerName":"品质检验组","subject":"S2002","subjectName":"加班工资","category":"人工","amount":10000.0,"used":8600.0,"rate":0.86,"level":"正常","left":1400.0},{"period":"2026-10","center":"CC203","centerName":"品质检验组","subject":"S3005","subjectName":"低值易耗品","category":"制造费用","amount":12000.0,"used":10200.0,"rate":0.85,"level":"正常","left":1800.0},{"period":"2026-10","center":"CC301","centerName":"生产管理部","subject":"S4001","subjectName":"办公费","category":"期间费用","amount":18000.0,"used":16800.0,"rate":0.9333,"level":"预警","left":1200.0},{"period":"2026-10","center":"CC301","centerName":"生产管理部","subject":"S4002","subjectName":"差旅费","category":"期间费用","amount":15000.0,"used":0.0,"rate":0.0,"level":"正常","left":15000.0},{"period":"2026-10","center":"CC302","centerName":"财务部","subject":"S4001","subjectName":"办公费","category":"期间费用","amount":10000.0,"used":9400.0,"rate":0.94,"level":"预警","left":600.0},{"period":"2026-10","center":"CC401","centerName":"销售中心","subject":"S4002","subjectName":"差旅费","category":"期间费用","amount":20000.0,"used":0.0,"rate":0.0,"level":"正常","left":20000.0},{"period":"2026-10","center":"CC401","centerName":"销售中心","subject":"S4003","subjectName":"业务招待费","category":"期间费用","amount":28000.0,"used":26800.0,"rate":0.9571,"level":"预警","left":1200.0},{"period":"2026-10","center":"CC501","centerName":"研发中心","subject":"S4001","subjectName":"办公费","category":"期间费用","amount":8000.0,"used":0.0,"rate":0.0,"level":"正常","left":8000.0},{"period":"2026-10","center":"CC501","centerName":"研发中心","subject":"S4004","subjectName":"研发材料费","category":"期间费用","amount":45000.0,"used":42600.0,"rate":0.9467,"level":"预警","left":2400.0}],"period":"2026-10"},"vars":{"list":[{"period":"2026-10","product":"P3001","productName":"电动工具整机","fromWo":"","qty":1400.0,"stdUnitCost":156.89,"actUnitCost":166.5109,"stdTotal":219646.0,"actTotal":233115.22,"totalVar":13469.22,"priceVar":706.33,"qtyVar":1745.35,"rateVar":1218.16,"effVar":9799.38,"expenseVar":0.0,"checkDiff":0.0,"level":"不利","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P2001","productName":"电机支架","fromWo":"","qty":6000.0,"stdUnitCost":16.59,"actUnitCost":18.5958,"stdTotal":99540.0,"actTotal":111574.94,"totalVar":12034.94,"priceVar":559.59,"qtyVar":-27.18,"rateVar":496.13,"effVar":11006.4,"expenseVar":0.0,"checkDiff":0.0,"level":"重大不利","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P1001","productName":"电机外壳 A 型","fromWo":"","qty":9000.0,"stdUnitCost":28.41,"actUnitCost":29.6791,"stdTotal":255690.0,"actTotal":267111.79,"totalVar":11421.79,"priceVar":0.47,"qtyVar":885.61,"rateVar":2051.87,"effVar":8483.84,"expenseVar":0.0,"checkDiff":0.0,"level":"不利","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P1003","productName":"控制盒上盖","fromWo":"","qty":2500.0,"stdUnitCost":26.68,"actUnitCost":31.0619,"stdTotal":66700.0,"actTotal":77654.66,"totalVar":10954.66,"priceVar":755.34,"qtyVar":-111.73,"rateVar":684.81,"effVar":9626.24,"expenseVar":0.0,"checkDiff":0.0,"level":"重大不利","calcAt":"2026-10-22 10:39:34"},{"period":"2026-10","product":"P2003","productName":"散热支架","fromWo":"","qty":3000.0,"stdUnitCost":19.45,"actUnitCost":19.6365,"stdTotal":58350.0,"actTotal":58909.39,"totalVar":559.39,"priceVar":-554.16,"qtyVar":-0.15,"rateVar":-299.3,"effVar":1413.0,"expenseVar":0.0,"checkDiff":0.0,"level":"微小","calcAt":"2026-10-22 10:39:34"}]},"alloc":{"list":[{"no":"AL202610-0001","period":"2026-10","method":"阶梯法","baseTotal":146500.0,"allocatedTotal":146500.0,"checkDiff":0.0,"status":"已完成","operator":"system","createdAt":"2026-10-22 10:39:34"}]},"rules":{"list":[{"id":1,"from":"CC201","fromName":"动力辅助车间","to":"CC101","toName":"注塑车间","driver":"机器工时","weight":96.0,"enabled":true,"fromOrder":1,"toOrder":5},{"id":2,"from":"CC201","fromName":"动力辅助车间","to":"CC102","toName":"冲压车间","driver":"机器工时","weight":72.0,"enabled":true,"fromOrder":1,"toOrder":5},{"id":3,"from":"CC201","fromName":"动力辅助车间","to":"CC103","toName":"装配车间","driver":"人工工时","weight":52.0,"enabled":true,"fromOrder":1,"toOrder":5},{"id":4,"from":"CC202","fromName":"设备维修组","to":"CC101","toName":"注塑车间","driver":"人工工时","weight":40.0,"enabled":true,"fromOrder":2,"toOrder":5},{"id":5,"from":"CC202","fromName":"设备维修组","to":"CC102","toName":"冲压车间","driver":"人工工时","weight":35.0,"enabled":true,"fromOrder":2,"toOrder":5},{"id":6,"from":"CC202","fromName":"设备维修组","to":"CC103","toName":"装配车间","driver":"人工工时","weight":45.0,"enabled":true,"fromOrder":2,"toOrder":5},{"id":7,"from":"CC203","fromName":"品质检验组","to":"CC101","toName":"注塑车间","driver":"人工工时","weight":30.0,"enabled":true,"fromOrder":3,"toOrder":5},{"id":8,"from":"CC203","fromName":"品质检验组","to":"CC102","toName":"冲压车间","driver":"人工工时","weight":25.0,"enabled":true,"fromOrder":3,"toOrder":5},{"id":9,"from":"CC203","fromName":"品质检验组","to":"CC103","toName":"装配车间","driver":"人工工时","weight":45.0,"enabled":true,"fromOrder":3,"toOrder":5}],"drivers":["人工工时","机器工时","面积","人数","直接成本","用量"]},"rep_center":{"period":"2026-10","list":[{"code":"CC201","name":"动力辅助车间","ctype":"辅助","direct":99600.0,"allocIn":0.0,"allocOut":99600.0,"total":0.0,"budget":108000.0,"rate":0.0,"orderCount":0},{"code":"CC202","name":"设备维修组","ctype":"辅助","direct":28100.0,"allocIn":0.0,"allocOut":28100.0,"total":0.0,"budget":33000.0,"rate":0.0,"orderCount":0},{"code":"CC203","name":"品质检验组","ctype":"辅助","direct":18800.0,"allocIn":0.0,"allocOut":18800.0,"total":0.0,"budget":22000.0,"rate":0.0,"orderCount":0},{"code":"CC101","name":"注塑车间","ctype":"生产","direct":132100.0,"allocIn":58468.49,"allocOut":0.0,"total":190568.49,"budget":145000.0,"rate":1.3143,"orderCount":4},{"code":"CC102","name":"冲压车间","ctype":"生产","direct":82300.0,"allocIn":45492.19,"allocOut":0.0,"total":127792.19,"budget":86000.0,"rate":1.486,"orderCount":3},{"code":"CC103","name":"装配车间","ctype":"生产","direct":48800.0,"allocIn":42539.32,"allocOut":0.0,"total":91339.32,"budget":55000.0,"rate":1.6607,"orderCount":3},{"code":"CC301","name":"生产管理部","ctype":"管理","direct":16800.0,"allocIn":0.0,"allocOut":0.0,"total":16800.0,"budget":33000.0,"rate":0.5091,"orderCount":0},{"code":"CC302","name":"财务部","ctype":"管理","direct":9400.0,"allocIn":0.0,"allocOut":0.0,"total":9400.0,"budget":10000.0,"rate":0.94,"orderCount":0},{"code":"CC401","name":"销售中心","ctype":"销售","direct":26800.0,"allocIn":0.0,"allocOut":0.0,"total":26800.0,"budget":48000.0,"rate":0.5583,"orderCount":0},{"code":"CC501","name":"研发中心","ctype":"研发","direct":42600.0,"allocIn":0.0,"allocOut":0.0,"total":42600.0,"budget":53000.0,"rate":0.8038,"orderCount":0}],"total":{"direct":505300.0,"allocIn":146500.0,"allocOut":146500.0,"net":505300.0}},"rep_prod":{"period":"2026-10","list":[{"product":"P1001","productName":"电机外壳 A 型","unit":"件","qty":9000.0,"stdUnit":28.41,"actUnit":29.6791,"stdTotal":255690.0,"actTotal":267111.79,"var":11421.79,"varRate":0.0447,"level":"不利","listPrice":28.0,"grossProfit":-1.68,"grossRate":-0.06},{"product":"P1003","productName":"控制盒上盖","unit":"件","qty":2500.0,"stdUnit":26.68,"actUnit":31.0619,"stdTotal":66700.0,"actTotal":77654.66,"var":10954.66,"varRate":0.1642,"level":"重大不利","listPrice":25.0,"grossProfit":-6.06,"grossRate":-0.2425},{"product":"P2001","productName":"电机支架","unit":"件","qty":6000.0,"stdUnit":16.59,"actUnit":18.5958,"stdTotal":99540.0,"actTotal":111574.94,"var":12034.94,"varRate":0.1209,"level":"重大不利","listPrice":15.0,"grossProfit":-3.6,"grossRate":-0.2397},{"product":"P2003","productName":"散热支架","unit":"件","qty":3000.0,"stdUnit":19.45,"actUnit":19.6365,"stdTotal":58350.0,"actTotal":58909.39,"var":559.39,"varRate":0.0096,"level":"微小","listPrice":16.5,"grossProfit":-3.14,"grossRate":-0.1901},{"product":"P3001","productName":"电动工具整机","unit":"台","qty":1400.0,"stdUnit":156.89,"actUnit":166.5109,"stdTotal":219646.0,"actTotal":233115.22,"var":13469.22,"varRate":0.0613,"level":"不利","listPrice":320.0,"grossProfit":153.49,"grossRate":0.4797}],"total":{"std":699926.0,"act":748366.0,"var":48440.0}},"rep_top":{"period":"2026-10","list":[{"product":"P3001","productName":"电动工具整机","totalVar":13469.22,"priceVar":706.33,"qtyVar":1745.35,"rateVar":1218.16,"effVar":9799.38,"expenseVar":0.0,"level":"不利"},{"product":"P2001","productName":"电机支架","totalVar":12034.94,"priceVar":559.59,"qtyVar":-27.18,"rateVar":496.13,"effVar":11006.4,"expenseVar":0.0,"level":"重大不利"},{"product":"P1001","productName":"电机外壳 A 型","totalVar":11421.79,"priceVar":0.47,"qtyVar":885.61,"rateVar":2051.87,"effVar":8483.84,"expenseVar":0.0,"level":"不利"},{"product":"P1003","productName":"控制盒上盖","totalVar":10954.66,"priceVar":755.34,"qtyVar":-111.73,"rateVar":684.81,"effVar":9626.24,"expenseVar":0.0,"level":"重大不利"},{"product":"P2003","productName":"散热支架","totalVar":559.39,"priceVar":-554.16,"qtyVar":-0.15,"rateVar":-299.3,"effVar":1413.0,"expenseVar":0.0,"level":"微小"}]},"rep_trend":{"list":[{"period":"2026-05","standard":0.0,"actual":0.0,"direct":0.0,"qty":0.0,"variance":0.0,"varRate":0.0},{"period":"2026-06","standard":0.0,"actual":0.0,"direct":0.0,"qty":0.0,"variance":0.0,"varRate":0.0},{"period":"2026-07","standard":0.0,"actual":0.0,"direct":0.0,"qty":0.0,"variance":0.0,"varRate":0.0},{"period":"2026-08","standard":0.0,"actual":0.0,"direct":0.0,"qty":0.0,"variance":0.0,"varRate":0.0},{"period":"2026-09","standard":474696.0,"actual":520261.67,"direct":384800.0,"qty":12000.0,"variance":45565.67,"varRate":0.096},{"period":"2026-10","standard":699926.0,"actual":748366.0,"direct":505300.0,"qty":21900.0,"variance":48440.0,"varRate":0.0692}],"period":"2026-10"},"periods":{"list":[{"period":"2026-10","status":"打开","closedAt":"","closedBy":"","expenseCount":20,"pendingExpenses":2,"orderCount":10,"openOrders":3,"allocDone":true,"expenseTotal":505300.0},{"period":"2026-09","status":"打开","closedAt":"","closedBy":"","expenseCount":10,"pendingExpenses":0,"orderCount":4,"openOrders":0,"allocDone":false,"expenseTotal":384800.0}]}};
+const $ = s => document.querySelector(s);
+const money = v => (v==null||v==='')?'—':Number(v).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const wan = v => (v==null)?'—':(Math.abs(v)>=10000?(v/10000).toFixed(2)+' 万':money(v));
+const num = v => (v==null)?'—':Number(v).toLocaleString('zh-CN',{maximumFractionDigits:2});
+const pct = v => (v==null)?'—':(Number(v)*100).toFixed(1)+'%';
+const sgn = v => (v>0?'neg':(v<0?'pos':''));
+const L = k => (D[k] && Array.isArray(D[k].list)) ? D[k].list : [];
+function tbl(cols, rows, empty){
+  if(!rows || !rows.length) return '<div class="note">'+(empty||'暂无数据')+'</div>';
+  let h = '<table><thead><tr>' + cols.map(c=>'<th class="'+(c.r?'r':'')+'">'+c.t+'</th>').join('') + '</tr></thead><tbody>';
+  h += rows.map(r=>'<tr>'+cols.map(c=>'<td class="'+(c.r?'r':'')+'">'+(c.f?c.f(r):(r[c.k]??'—'))+'</td>').join('')+'</tr>').join('');
+  return h + '</tbody></table>';
+}
+const PAGES = [];
+const page = o => PAGES.push(o);
+
+page({id:'dash', t:'仪表盘', render(){
+  const b = D.board && D.board.kpi ? D.board.kpi : {};
+  const bg = b.budget || {};
+  const p = D.board && D.board.period ? D.board.period : {};
+  const kpi = [
+    ['本期实际成本', wan(b.actTotal), '元', ''],
+    ['本期标准成本', wan(b.stdTotal), '元', 'u'],
+    ['成本差异', wan(b.variance), '元', (b.variance||0)>0?'b':''],
+    ['差异率', b.varianceRate!=null?pct(b.varianceRate):'—', '', (b.varianceRate||0)>0.05?'w':''],
+    ['直接归集', wan(b.directCost), '元', ''],
+    ['已分摊', wan(b.allocated), '元', 'u'],
+    ['待审批费用', num(b.pendingExpenses), '张', (b.pendingExpenses||0)>0?'w':''],
+    ['预算执行率', bg.rate!=null?pct(bg.rate):'—', '', (bg.rate||0)>1?'b':''],
+  ];
+  let h = '<div class="grid">' + kpi.map(k=>'<div class="card '+k[3]+'"><div class="k">'+k[0]+'</div><div class="v">'+(k[1]??'—')+'<small>'+k[2]+'</small></div></div>').join('') + '</div>';
+
+  if(p.period){
+    h += '<h2>期间状态 · '+p.period+'</h2>';
+    h += '<div class="grid">'
+      + '<div class="card"><div class="k">成本中心</div><div class="v">'+num(p.centers)+'</div></div>'
+      + '<div class="card u"><div class="k">产品</div><div class="v">'+num(p.products)+'</div></div>'
+      + '<div class="card '+(p.openOrders>0?'w':'')+'"><div class="k">在制工单</div><div class="v">'+num(p.openOrders)+'</div></div>'
+      + '<div class="card"><div class="k">分摊守恒校验</div><div class="v" style="color:#4fd18b">'+money(b.allocCheck)+'</div></div>'
+      + '</div>';
+  }
+
+  const trend = L('rep_trend').filter(x=>x.actual>0);
+  if(trend.length){
+    h += '<h2>近 6 期成本趋势</h2>' + tbl([
+      {t:'期间',k:'period'},
+      {t:'实际成本',r:1,f:r=>money(r.actual)},
+      {t:'标准成本',r:1,f:r=>money(r.standard)},
+      {t:'总差异',r:1,f:r=>'<span class="'+sgn(r.variance)+'">'+money(r.variance)+'</span>'},
+      {t:'差异率',r:1,f:r=>pct(r.varRate)}
+    ], trend);
+  }
+
+  const cs = L('rep_center').filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+  if(cs.length){
+    const mx = Math.max(...cs.map(x=>x.total),1);
+    h += '<h2>成本中心归集排名</h2>' + tbl([
+      {t:'编码',k:'code'},{t:'成本中心',k:'name'},{t:'类型',k:'ctype'},
+      {t:'直接归集',r:1,f:r=>money(r.direct)},
+      {t:'分入',r:1,f:r=>money(r.allocIn)},
+      {t:'合计',r:1,f:r=>'<b>'+money(r.total)+'</b>'},
+      {t:'占比',f:r=>'<div class="bar"><i style="width:'+Math.max(2,Math.round(r.total/mx*100))+'%"></i></div>'}
+    ], cs.slice(0,8));
+  }
+
+  const vt = L('rep_top');
+  if(vt.length){
+    h += '<h2>差异 TOP</h2>' + tbl([
+      {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+      {t:'总差异',r:1,f:r=>'<span class="'+sgn(r.totalVar)+'">'+money(r.totalVar)+'</span>'},
+      {t:'其中效率差',r:1,f:r=>money(r.effVar)},
+      {t:'其中量差',r:1,f:r=>money(r.qtyVar)},
+      {t:'等级',f:r=>{const l=r.level||'';return '<span class="tag '+(l==='不利'?'t-b':'t-ok')+'">'+(l||'正常')+'</span>';}}
+    ], vt.slice(0,5));
+  }
+  return h;
+}});
+
+page({id:'center', t:'成本中心', render(){
+  return tbl([
+    {t:'编码',k:'code'},{t:'名称',k:'name'},
+    {t:'类型',f:r=>{const m={'辅助':'t-i','生产':'t-ok','管理':'t-w','销售':'t-w','研发':'t-i'};return '<span class="tag '+(m[r.ctype]||'t-i')+'">'+(r.ctype||'—')+'</span>';}},
+    {t:'分摊顺序',r:1,k:'allocOrder'},
+    {t:'分配标准',k:'driver'},
+    {t:'作业量',r:1,f:r=>num(r.driverQty)},
+    {t:'直接归集',r:1,f:r=>money(r.directCost)},
+    {t:'负责人',k:'leader'},
+    {t:'状态',f:r=>'<span class="tag '+(r.status==='启用'?'t-ok':'t-b')+'">'+(r.status||'—')+'</span>'}
+  ], L('centers'));
+}});
+
+page({id:'subject', t:'会计科目', render(){
+  return tbl([
+    {t:'编码',k:'code'},{t:'名称',k:'name'},{t:'类别',k:'category'},
+    {t:'归集方式',k:'gather'},
+    {t:'启用',f:r=>r.enabled?'<span class="tag t-ok">启用</span>':'<span class="tag t-b">停用</span>'}
+  ], L('subjects'));
+}});
+
+page({id:'product', t:'产品与 BOM', render(){
+  const ps = L('products');
+  let h = tbl([
+    {t:'编码',k:'code'},{t:'名称',k:'name'},{t:'规格',k:'spec'},{t:'单位',k:'unit'},
+    {t:'标准工时',r:1,f:r=>num(r.stdHours)},
+    {t:'生产中心',f:r=>(r.center||'')+' '+(r.centerName||'')},
+    {t:'BOM 行数',r:1,k:'bomCount'},
+    {t:'单位标准成本',r:1,f:r=>'<b>'+money(r.stdUnitCost)+'</b>'},
+    {t:'标准材料',r:1,f:r=>money(r.stdMat)},
+    {t:'标准人工',r:1,f:r=>money(r.stdLabor)},
+    {t:'标准制费',r:1,f:r=>money(r.stdOh)}
+  ], ps);
+  h += '<div class="note">标准成本卡口径：材料 = Σ 单位用量 ×（1 + 损耗率）× 标准单价；人工 / 制造费用 = 标准工时 × 中心费率。</div>';
+  return h;
+}});
+
+page({id:'std', t:'标准成本', render(){
+  return tbl([
+    {t:'期间',k:'period'},
+    {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+    {t:'单位',k:'unit'},{t:'版本',r:1,k:'version'},
+    {t:'材料',r:1,f:r=>money(r.matCost)},
+    {t:'人工',r:1,f:r=>money(r.laborCost)},
+    {t:'制造费用',r:1,f:r=>money(r.ohCost)},
+    {t:'单位标准成本',r:1,f:r=>'<b>'+money(r.unitCost)+'</b>'},
+    {t:'状态',f:r=>'<span class="tag t-ok">'+(r.status||'—')+'</span>'}
+  ], L('std'));
+}});
+
+page({id:'wo', t:'工单管理', render(){
+  return tbl([
+    {t:'工单号',k:'no'},
+    {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+    {t:'生产中心',f:r=>(r.center||'')+' '+(r.centerName||'')},
+    {t:'计划',r:1,f:r=>num(r.qtyPlan)},
+    {t:'完工',r:1,f:r=>num(r.qtyDone)},
+    {t:'在制',r:1,f:r=>num(r.wipQty)},
+    {t:'完工进度',r:1,f:r=>pct(r.wipRate)},
+    {t:'实际总成本',r:1,f:r=>money(r.actTotal)},
+    {t:'状态',f:r=>{const m={'已完工':'t-ok','在制':'t-i','已下达':'t-w','已关闭':'t-b'};return '<span class="tag '+(m[r.status]||'t-i')+'">'+(r.status||'—')+'</span>';}}
+  ], L('orders'));
+}});
+
+page({id:'exp', t:'费用归集', render(){
+  const rows = L('expenses');
+  const ok = rows.filter(r=>r.status==='已批准');
+  let h = '<div class="grid">'
+    + '<div class="card"><div class="k">费用单数</div><div class="v">'+rows.length+'<small>张</small></div></div>'
+    + '<div class="card u"><div class="k">已批准金额</div><div class="v">'+wan(ok.reduce((a,r)=>a+Number(r.amount||0),0))+'<small>元</small></div></div>'
+    + '<div class="card w"><div class="k">待审批</div><div class="v">'+rows.filter(r=>r.status==='待审批').length+'<small>张</small></div></div>'
+    + '<div class="card"><div class="k">已驳回</div><div class="v">'+rows.filter(r=>r.status==='已驳回').length+'<small>张</small></div></div>'
+    + '</div>';
+  h += tbl([
+    {t:'单号',k:'no'},
+    {t:'成本中心',f:r=>(r.center||'')+' '+(r.centerName||'')},
+    {t:'科目',f:r=>(r.subject||'')+' '+(r.subjectName||'')},
+    {t:'类别',k:'category'},
+    {t:'摘要',k:'summary'},
+    {t:'金额',r:1,f:r=>money(r.amount)},
+    {t:'申请人',k:'applicant'},
+    {t:'状态',f:r=>{const m={'已批准':'t-ok','待审批':'t-w','已驳回':'t-b','草稿':'t-i'};return '<span class="tag '+(m[r.status]||'t-i')+'">'+(r.status||'—')+'</span>';}}
+  ], rows);
+  return h;
+}});
+
+page({id:'alloc', t:'阶梯分摊', render(){
+  const runs = L('alloc');
+  let h = tbl([
+    {t:'批次号',k:'no'},{t:'期间',k:'period'},{t:'方法',k:'method'},
+    {t:'归集基数',r:1,f:r=>money(r.baseTotal)},
+    {t:'已分摊',r:1,f:r=>money(r.allocatedTotal)},
+    {t:'差额校验',r:1,f:r=>'<span class="'+(Math.abs(r.checkDiff||0)<0.01?'pos':'neg')+'">'+money(r.checkDiff)+'</span>'},
+    {t:'状态',f:r=>'<span class="tag '+(Math.abs(r.checkDiff||0)<0.01?'t-ok':'t-b')+'">'+(Math.abs(r.checkDiff||0)<0.01?'守恒':'不平')+'</span>'},
+    {t:'执行人',k:'operator'}
+  ], runs);
+
+  const cs = L('centers').filter(c=>c.allocOut>0);
+  if(cs.length){
+    h += '<h2>摊出明细（按分摊顺序）</h2>' + tbl([
+      {t:'顺序',r:1,k:'allocOrder'},
+      {t:'成本中心',f:r=>(r.code||'')+' '+(r.name||'')},
+      {t:'类型',k:'ctype'},
+      {t:'分配标准',k:'driver'},
+      {t:'分入',r:1,f:r=>money(r.allocIn)},
+      {t:'摊出',r:1,f:r=>money(r.allocOut)},
+      {t:'留存',r:1,f:r=>money(r.total)}
+    ], cs);
+  }
+
+  h += '<h2>分摊规则</h2>' + tbl([
+    {t:'分摊方',f:r=>(r.from||'')+' '+(r.fromName||'')},
+    {t:'顺序',r:1,k:'fromOrder'},
+    {t:'接收方',f:r=>(r.to||'')+' '+(r.toName||'')},
+    {t:'接收顺序',r:1,k:'toOrder'},
+    {t:'分配标准',k:'driver'},
+    {t:'权重',r:1,f:r=>num(r.weight)},
+    {t:'启用',f:r=>r.enabled?'<span class="tag t-ok">是</span>':'<span class="tag t-b">否</span>'}
+  ], L('rules'));
+
+  h += '<div class="note">阶梯（顺序）分摊法：辅助中心按顺序把「自身归集 + 上游分入」全额摊出，<b>禁止回分</b>（只能分给顺序更大的中心），末位中心吸收取整尾差，保证 baseTotal = allocatedTotal 分毫不差。</div>';
+  return h;
+}});
+
+page({id:'budget', t:'预算管控', render(){
+  return tbl([
+    {t:'期间',k:'period'},
+    {t:'成本中心',f:r=>(r.center||'')+' '+(r.centerName||'')},
+    {t:'科目',f:r=>(r.subject||'')+' '+(r.subjectName||'')},
+    {t:'预算额',r:1,f:r=>money(r.amount)},
+    {t:'已用',r:1,f:r=>money(r.used)},
+    {t:'剩余',r:1,f:r=>money(r.left)},
+    {t:'执行率',r:1,f:r=>pct(r.rate)},
+    {t:'进度',f:r=>{const v=Math.min((r.rate||0)*100,100);const c=(r.rate||0)>1?'b':((r.rate||0)>=0.9?'w':'');return '<div class="bar"><i class="'+c+'" style="width:'+v+'%"></i></div>';}},
+    {t:'状态',f:r=>{const v=r.rate||0;const t=v>1.1?['超支阻断','t-b']:(v>1?['超支','t-b']:(v>=0.9?['预警','t-w']:['正常','t-ok']));return '<span class="tag '+t[1]+'">'+t[0]+'</span>';}}
+  ], L('budgets'));
+}});
+
+page({id:'var', t:'差异分析', render(){
+  const rows = L('vars');
+  let h = tbl([
+    {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+    {t:'产量',r:1,f:r=>num(r.qty)},
+    {t:'标准成本',r:1,f:r=>money(r.stdTotal)},
+    {t:'实际成本',r:1,f:r=>money(r.actTotal)},
+    {t:'价差',r:1,f:r=>'<span class="'+sgn(r.priceVar)+'">'+money(r.priceVar)+'</span>'},
+    {t:'量差',r:1,f:r=>'<span class="'+sgn(r.qtyVar)+'">'+money(r.qtyVar)+'</span>'},
+    {t:'工资率差',r:1,f:r=>'<span class="'+sgn(r.rateVar)+'">'+money(r.rateVar)+'</span>'},
+    {t:'效率差',r:1,f:r=>'<span class="'+sgn(r.effVar)+'">'+money(r.effVar)+'</span>'},
+    {t:'耗费差',r:1,f:r=>'<span class="'+sgn(r.expenseVar)+'">'+money(r.expenseVar)+'</span>'},
+    {t:'总差异',r:1,f:r=>'<b class="'+sgn(r.totalVar)+'">'+money(r.totalVar)+'</b>'},
+    {t:'校验',r:1,f:r=>Math.abs(r.checkDiff||0)<0.01?'<span class="tag t-ok">闭合</span>':'<span class="tag t-b">'+money(r.checkDiff)+'</span>'},
+    {t:'等级',f:r=>{const l=r.level||'';return '<span class="tag '+(l==='不利'?'t-b':'t-ok')+'">'+(l||'正常')+'</span>';}}
+  ], rows);
+  h += '<div class="note">五维差异（预定分配率法）：价差 =（实价 − 标价）× 实量；量差 =（实量 − 标量）× 标价；工资率差 =（实率 − 标率）× 实工时；效率差 =（实工时 − 标工时）× 标率；耗费差 = 实制费 − 实工时 × 标准分配率。<b>五项之和 = 实际 − 标准</b>，校验列全部为「闭合」。</div>';
+  return h;
+}});
+
+page({id:'report', t:'报表中心', render(){
+  let h = '<h2>成本中心汇总</h2>' + tbl([
+    {t:'编码',k:'code'},{t:'成本中心',k:'name'},{t:'类型',k:'ctype'},
+    {t:'直接归集',r:1,f:r=>money(r.direct)},
+    {t:'分入',r:1,f:r=>money(r.allocIn)},
+    {t:'摊出',r:1,f:r=>money(r.allocOut)},
+    {t:'留存成本',r:1,f:r=>'<b>'+money(r.total)+'</b>'},
+    {t:'预算',r:1,f:r=>money(r.budget)},
+    {t:'执行率',r:1,f:r=>pct(r.rate)}
+  ], L('rep_center'));
+
+  h += '<h2>产品成本卡</h2>' + tbl([
+    {t:'产品',f:r=>(r.product||'')+' '+(r.productName||'')},
+    {t:'产量',r:1,f:r=>num(r.qty)},
+    {t:'单位标准',r:1,f:r=>money(r.stdUnit)},
+    {t:'单位实际',r:1,f:r=>money(r.actUnit)},
+    {t:'标准总成本',r:1,f:r=>money(r.stdTotal)},
+    {t:'实际总成本',r:1,f:r=>money(r.actTotal)},
+    {t:'差异',r:1,f:r=>'<span class="'+sgn(r.var)+'">'+money(r.var)+'</span>'},
+    {t:'差异率',r:1,f:r=>pct(r.varRate)},
+    {t:'等级',f:r=>'<span class="tag '+(r.level==='不利'?'t-b':'t-ok')+'">'+(r.level||'正常')+'</span>'}
+  ], L('rep_prod'));
+  return h;
+}});
+
+page({id:'period', t:'期间结账', render(){
+  let h = tbl([
+    {t:'期间',k:'period'},
+    {t:'状态',f:r=>r.status==='已结账'?'<span class="tag t-b">已结账</span>':'<span class="tag t-ok">打开</span>'},
+    {t:'费用单',r:1,k:'expenseCount'},
+    {t:'待审批',r:1,f:r=>r.pendingExpenses>0?'<span class="tag t-w">'+r.pendingExpenses+'</span>':r.pendingExpenses},
+    {t:'工单',r:1,k:'orderCount'},
+    {t:'在制',r:1,f:r=>r.openOrders>0?'<span class="tag t-w">'+r.openOrders+'</span>':r.openOrders},
+    {t:'已分摊',f:r=>r.allocDone?'<span class="tag t-ok">是</span>':'<span class="tag t-b">否</span>'},
+    {t:'费用合计',r:1,f:r=>money(r.expenseTotal)},
+    {t:'结账时间',f:r=>r.closedAt||'—'}
+  ], L('periods'));
+  h += '<div class="note">结账三闸口：无待审批费用单、无未完工工单、已执行本期分摊。三者全部满足才允许结账；结账后一切写入返回 409，需反结账才能修改。</div>';
+  return h;
+}});
+
+let cur = PAGES[0].id;
+function go(id){
+  cur = id;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.id===id));
+  const p = PAGES.find(x=>x.id===id);
+  $('#main').innerHTML = p.render();
+  window.scrollTo(0,0);
+}
+$('#nav').innerHTML = PAGES.map(p=>'<button data-id="'+p.id+'" onclick="go(\''+p.id+'\')">'+p.t+'</button>').join('');
+go(cur);
+</script>
+</body>
+</html>
